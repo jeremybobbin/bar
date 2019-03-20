@@ -1,0 +1,6 @@
+#!/bin/sh
+find $HOME/.mail/*/Inbox/new/ -type f | wc -l | if read int && [ "$int" -gt 0 ]; then
+	# mail symbol
+	echo '✉'
+fi
+sleep 10

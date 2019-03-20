@@ -1,0 +1,15 @@
+#!/bin/sh
+STOPPED="◼"
+PLAYING="►"
+
+mpc status -f '%artist% ~ %title%' | if read -r song && read -r state rest; then
+	case "$state" in
+		'[playing]') state="$PLAYING";;
+		*) state="$STOPPED";;
+	esac
+	echo "$song $state"
+else
+	echo "$STOPPED"
+fi
+
+mpc idle >/dev/null

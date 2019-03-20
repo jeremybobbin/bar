@@ -1,0 +1,4 @@
+#!/bin/sh
+date '+%B %d, %Y'
+sleep $(($(date -d 'tomorrow 00:00:00' +%s) - $(date +%s)))
+

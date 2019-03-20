@@ -1,0 +1,43 @@
+#!/bin/sh
+SEGMENTS="$HOME/.local/var/bar"
+PROGS="$PWD/bar.d"
+pids="$(mktemp)"
+n=50
+
+mkdir -p "$SEGMENTS" "$PROGS"
+
+# ignore INT & TERM - only children should it
+trap ":" INT TERM
+
+while read prg; do
+	# each "base" program should hang until another invocation is needed
+	# other programs will have to manage their own
+	out="$SEGMENTS/$((n++))-$prg"
+	touch "$out"
+	(
+		while "$PROGS/$prg"; do
+			:
+		done | while read line; do
+			# this second while loop is necessary
+			# for processes that take time to complete
+			echo "$line" > "$out"
+		done; rm "$out"
+	) & echo $! >> "$pids"
+done <<- EOF
+	mail
+	music
+	memory
+	date
+	time
+EOF
+
+# each time one of the segment files is updated, update the bar
+until find "$SEGMENTS" | entr -d bar-concat; do :; done &
+echo $! >> "$pids"
+
+
+while read pid; do
+	wait "$pid"
+done < "$pids"
+
+rm "$pids"
