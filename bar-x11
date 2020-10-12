@@ -1,0 +1,4 @@
+#!/bin/sh
+bar | while read line; do
+	xsetroot -name " $line "
+done & 
