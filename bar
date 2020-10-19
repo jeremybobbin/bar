@@ -9,7 +9,17 @@ mkdir -p "$SEGMENTS" "$PROGS"
 # ignore INT & TERM - only children should it
 trap "kill -s TERM $$" INT
 
-while read prg; do
+if [ -f $HOME/.config/bar ]; then
+	cat $HOME/.config/bar
+else
+	cat <<- EOF
+		mail
+		music
+		memory
+		date
+		time
+	EOF
+fi | while read prg; do
 	# each "base" program should hang until another invocation is needed
 	# other programs will have to manage their own
 	out="$SEGMENTS/$((n++))-$prg"
@@ -23,13 +33,7 @@ while read prg; do
 			echo "$line" > "$out"
 		done; rm "$out"
 	) & echo $! >> "$pids"
-done <<- EOF
-	mail
-	music
-	memory
-	date
-	time
-EOF
+done
 
 # each time one of the segment files is updated, concat the bar segments
 while cat "${SEGMENTS:-"$HOME/.local/var/bar"}"/* |
