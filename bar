@@ -1,12 +1,29 @@
 #!/bin/sh -e
 SEGMENTS="$HOME/.local/var/bar"
 PROGS="$HOME/.local/bin/bar.d"
-pids="$(mktemp)"
+tmp="$(mktemp -d)"
+pids="$tmp/pid"
+files="$tmp/files"
 n=50
 
-mkdir -p "$SEGMENTS" "$PROGS"
+cleanup() {
+	if [ ! -f "$pids" ] || [ ! -f "$files" ]; then
+		return 0
+	fi
+	while read pid; do
+		if ps -o pid= -p "$pid"; then
+			kill -s TERM "$pid"
+		fi
+	done < "$pids"
+	while read file; do rm -f "$file"; done < "$files"
+	rm -f "$pids"
+	rm -f "$files"
+}
 
-trap "kill -s TERM $$" INT
+trap "cleanup" INT
+trap "cleanup; exec $0 $@" USR1
+
+mkdir -p "$SEGMENTS" "$PROGS"
 
 if [ -f $HOME/.config/bar ]; then
 	cat $HOME/.config/bar
@@ -23,15 +40,14 @@ fi | while read prg; do
 	# other programs will have to manage their own
 	out="$SEGMENTS/$((n++))-$prg"
 	touch $out
-	(
-		while "$PROGS/$prg"; do
-			:
-		done | while read line; do
-			# this second while loop is necessary
-			# for processes that take time to complete
-			echo "$line" > "$out"
-		done; rm "$out"
-	) & echo $! >> "$pids"
+	echo $out >> $files
+	while "$PROGS/$prg"; do
+		:
+	done | while read line; do
+		# this second while loop is necessary
+		# for processes that take time to complete
+		echo "$line" > "$out"
+	done & echo $! >> "$pids"
 done
 
 # each time one of the segment files is updated, concat the bar segments
@@ -40,8 +56,4 @@ while cat "${SEGMENTS:-"$HOME/.local/var/bar"}"/* |
 		inotifywait -e CREATE,MOVED_FROM,DELETE,MODIFY "$SEGMENTS" >/dev/null 2>&1
 	done
 
-while read pid; do
-	wait "$pid"
-done < "$pids"
-
-rm -f "$pids"
+cleanup
