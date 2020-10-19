@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 SEGMENTS="$HOME/.local/var/bar"
 PROGS="$HOME/.local/bin/bar.d"
 pids="$(mktemp)"
@@ -6,7 +6,6 @@ n=50
 
 mkdir -p "$SEGMENTS" "$PROGS"
 
-# ignore INT & TERM - only children should it
 trap "kill -s TERM $$" INT
 
 if [ -f $HOME/.config/bar ]; then
@@ -45,4 +44,4 @@ while read pid; do
 	wait "$pid"
 done < "$pids"
 
-rm "$pids"
+rm -f "$pids"
