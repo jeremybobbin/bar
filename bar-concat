@@ -1,3 +1,0 @@
-#!/bin/sh
-# concat all bar segments, and put them in the bar
-cat "${SEGMENTS:-"$HOME/.local/var/bar"}"/* | sed ":a; N; s/\n/ | /; ba"
