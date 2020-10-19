@@ -1,5 +1,5 @@
 PREFIX=$(HOME)/.local
-BINS=bar bar-x11
+BINS=bar bar-x11 bar-dvtm
 SEGS=bar.d/date bar.d/mail bar.d/memory bar.d/music bar.d/time
 
 install:

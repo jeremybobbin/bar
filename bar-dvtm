@@ -1,0 +1,2 @@
+#!/bin/sh
+bar > "$DVTM_STATUS_FIFO"
