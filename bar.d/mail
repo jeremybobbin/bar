@@ -2,5 +2,7 @@
 find $HOME/.mail/*/Inbox/new/ -type f | wc -l | if read int && [ "$int" -gt 0 ]; then
 	# mail symbol
 	echo '✉'
+else
+	echo
 fi
-sleep 10
+inotifywait -qe CREATE,DELETE,MOVED_FROM,MOVED_TO $HOME/.mail/*/Inbox/new >/dev/null 2>&1
