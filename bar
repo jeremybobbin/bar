@@ -32,9 +32,10 @@ done <<- EOF
 EOF
 
 # each time one of the segment files is updated, concat the bar segments
-while cat "${SEGMENTS:-"$HOME/.local/var/bar"}"/* | sed ":a; N; s/\n/ | /; ba"; do
-	inotifywait -e CREATE,MOVED_FROM,DELETE,MODIFY "$SEGMENTS" >/dev/null 2>&1
-done
+while cat "${SEGMENTS:-"$HOME/.local/var/bar"}"/* |
+	awk '/^$/ { next } !s { s=$0; next } { s = s " | " $0 } END { print s }'; do
+		inotifywait -e CREATE,MOVED_FROM,DELETE,MODIFY "$SEGMENTS" >/dev/null 2>&1
+	done
 
 while read pid; do
 	wait "$pid"
