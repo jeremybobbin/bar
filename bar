@@ -1,6 +1,6 @@
 #!/bin/sh
 SEGMENTS="$HOME/.local/var/bar"
-PROGS="$PWD/bar.d"
+PROGS="$HOME/.local/bin/bar.d"
 pids="$(mktemp)"
 n=50
 
