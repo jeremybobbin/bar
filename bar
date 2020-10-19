@@ -10,23 +10,22 @@ cleanup() {
 	if [ ! -f "$pids" ] || [ ! -f "$files" ]; then
 		return 0
 	fi
-	while read pid; do
+	while read -r pid; do
 		if ps -o pid= -p "$pid"; then
 			kill -s TERM "$pid"
 		fi
 	done < "$pids"
-	while read file; do rm -f "$file"; done < "$files"
+	while read -r file; do rm -f "$file"; done < "$files"
 	rm -f "$pids"
 	rm -f "$files"
 }
 
-trap "cleanup" INT
-trap "cleanup; exec $0 $@" USR1
+trap 'cleanup' INT
 
 mkdir -p "$SEGMENTS" "$PROGS"
 
-if [ -f $HOME/.config/bar ]; then
-	cat $HOME/.config/bar
+if [ -f "$HOME/.config/bar" ]; then
+	cat "$HOME/.config/bar"
 else
 	cat <<- EOF
 		mail
@@ -35,15 +34,15 @@ else
 		date
 		time
 	EOF
-fi | while read prg; do
+fi | while read -r prg; do
 	# each "base" program should hang until another invocation is needed
 	# other programs will have to manage their own
-	out="$SEGMENTS/$((n++))-$prg"
-	touch $out
-	echo $out >> $files
+	out="$SEGMENTS/$((n+=1))-$prg"
+	touch "$out"
+	echo "$out" >> "$files"
 	while "$PROGS/$prg"; do
 		:
-	done | while read line; do
+	done | while read -r line; do
 		# this second while loop is necessary
 		# for processes that take time to complete
 		echo "$line" > "$out"
