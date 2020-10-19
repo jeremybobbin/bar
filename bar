@@ -7,13 +7,13 @@ n=50
 mkdir -p "$SEGMENTS" "$PROGS"
 
 # ignore INT & TERM - only children should it
-trap ":" INT TERM
+trap "kill -s TERM $$" INT
 
 while read prg; do
 	# each "base" program should hang until another invocation is needed
 	# other programs will have to manage their own
 	out="$SEGMENTS/$((n++))-$prg"
-	touch "$out"
+	touch $out
 	(
 		while "$PROGS/$prg"; do
 			:
@@ -31,10 +31,10 @@ done <<- EOF
 	time
 EOF
 
-# each time one of the segment files is updated, update the bar
-until find "$SEGMENTS" | entr -d bar-concat; do :; done &
-echo $! >> "$pids"
-
+# each time one of the segment files is updated, concat the bar segments
+while cat "${SEGMENTS:-"$HOME/.local/var/bar"}"/* | sed ":a; N; s/\n/ | /; ba"; do
+	inotifywait -e CREATE,MOVED_FROM,DELETE,MODIFY "$SEGMENTS" >/dev/null 2>&1
+done
 
 while read pid; do
 	wait "$pid"
